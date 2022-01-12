@@ -7,11 +7,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import tk.andrei.medicalapp.entities.Role;
-import tk.andrei.medicalapp.entities.User;
 import tk.andrei.medicalapp.entities.dto.UserDTO;
 import tk.andrei.medicalapp.services.UserServiceImpl;
 
-import java.util.ArrayList;
 
 @SpringBootApplication
 public class MedicalAppApplication {
