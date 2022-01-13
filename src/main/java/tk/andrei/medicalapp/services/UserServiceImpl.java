@@ -54,8 +54,9 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     }
 
     @Override
-    public Boolean deleteUser(String email) {
-        User userToDelete = userRepository.findUserByEmail(email);
+    public Boolean deleteUser(String userEmail) {
+        User userToDelete = userRepository.findUserByEmail(userEmail);
+
         if(userToDelete == null){
             throw new UsernameNotFoundException("User not found in the database");
         }
