@@ -68,7 +68,7 @@ public class UserController {
 
     @ApiOperation(value = "Delete user", notes = "With this request you can delete an user", authorizations = {@Authorization(value = "Bearer")})
     @DeleteMapping("/delete")
-    public ResponseEntity<String> removeUser(@RequestBody String userEmail) {
+    public ResponseEntity<String> removeUser(@RequestParam String userEmail) {
         Boolean success = userService.deleteUser(userEmail);
         if (success) {
             return ResponseEntity.status(HttpStatus.OK).body("User removed successfully");
