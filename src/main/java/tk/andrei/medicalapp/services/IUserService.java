@@ -13,7 +13,7 @@ public interface IUserService {
     User getUser(String userEmail);
     User getUser(UUID userid);
     Boolean deleteUser(String email);
-    Role saveRole(Role role);
+    void saveRole(Role role);
     Boolean addRoleToUser(String userEmail, String roleName);
     Boolean removeRoleFromUser(String userEmail, String roleName);
 }

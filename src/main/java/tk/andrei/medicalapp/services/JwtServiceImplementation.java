@@ -16,7 +16,7 @@ import static java.util.Arrays.stream;
 @Service
 @RequiredArgsConstructor
 public class JwtServiceImplementation implements JwtService {
-    private final String issuer = "Andrei";
+    private static final String ISSUER = "Andrei";
 
     @Value("${jwt.secret}")
     private String secret;
@@ -31,13 +31,13 @@ public class JwtServiceImplementation implements JwtService {
     }
 
     @Override
-    public String createAccessToken(String username, List authorities) {
+    public String createAccessToken(String username, List<String> authorities) {
         // two days
         int minutes = 2880;
         return JWT.create()
                 .withSubject(username)
                 .withExpiresAt(new Date(System.currentTimeMillis() + minutes * 60 * 1000))
-                .withIssuer(this.issuer)
+                .withIssuer(ISSUER)
                 .withClaim("roles", authorities)
                 .sign(this.getAlgorithm());
     }
@@ -49,7 +49,7 @@ public class JwtServiceImplementation implements JwtService {
         return JWT.create()
                 .withSubject(username)
                 .withExpiresAt(new Date(System.currentTimeMillis() + minutes * 60 * 1000))
-                .withIssuer(this.issuer)
+                .withIssuer(ISSUER)
                 .sign(this.getAlgorithm());
     }
 
@@ -68,10 +68,7 @@ public class JwtServiceImplementation implements JwtService {
     public Collection<SimpleGrantedAuthority> getAuthorities(DecodedJWT decodedJWT) {
         String[] roles = decodedJWT.getClaim("roles").asArray(String.class);
         Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        stream(roles).forEach(role -> {
-            authorities.add(new SimpleGrantedAuthority(role));
-        });
-
+        stream(roles).forEach(role -> authorities.add(new SimpleGrantedAuthority(role)));
         return authorities;
     }
 

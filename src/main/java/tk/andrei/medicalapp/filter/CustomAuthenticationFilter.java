@@ -14,13 +14,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import tk.andrei.medicalapp.services.JwtService;
 
 import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -56,23 +54,17 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authentication) throws IOException {
         User user = (User)authentication.getPrincipal();
 
-        String access_token = tokenService.createAccessToken(
+        String accessToken = tokenService.createAccessToken(
                 user.getUsername(),
-                user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList())
+                user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()
         );
-        String refresh_token = tokenService.createRefreshToken(user.getUsername());
+        String refreshToken = tokenService.createRefreshToken(user.getUsername());
         Map<String, String> tokens = new HashMap<>();
-        tokens.put("access_token", access_token);
-        tokens.put("refresh_token", refresh_token);
+        tokens.put("access_token", accessToken);
+        tokens.put("refresh_token", refreshToken);
 
         response.setContentType(APPLICATION_JSON_VALUE);
         new ObjectMapper().writeValue(response.getOutputStream(), tokens);
     }
-
-    @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        super.unsuccessfulAuthentication(request, response, failed);
-    }
-
 
 }

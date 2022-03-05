@@ -16,13 +16,10 @@ import tk.andrei.medicalapp.repositories.RoleRepository;
 import tk.andrei.medicalapp.repositories.UserRepository;
 
 import javax.transaction.Transactional;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
-@Service 
-@RequiredArgsConstructor 
+@Service
+@RequiredArgsConstructor
 @Transactional
 public class UserServiceImpl implements IUserService, UserDetailsService {
     private final UserRepository userRepository;
@@ -31,11 +28,9 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
 
     @Override
     public User createUser(UserDTO user) {
-
         User userToRegister = new User();
         userToRegister.setEmail(user.getEmail());
         userToRegister.setPassword(user.getPassword());
-        // encrypt the password
         userToRegister.setPassword(passwordEncoder.encode(userToRegister.getPassword()));
         userToRegister.setFirstName(user.getFirstName());
         userToRegister.setLastName(user.getLastName());
@@ -44,39 +39,36 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
 
     @Override
     public User getUser(String userEmail) {
-        return userRepository.findUserByEmail(userEmail);
+        return userRepository.findUserByEmail(userEmail).orElse(null);
     }
 
     @Override
     public User getUser(UUID uuid) {
-        Optional<User> user = userRepository.findById(uuid);
-        return user.orElse(null);
+        return userRepository.findById(uuid).orElse(null);
     }
 
     @Override
     public Boolean deleteUser(String userEmail) {
-        User userToDelete = userRepository.findUserByEmail(userEmail);
-
-        if(userToDelete == null){
-            throw new UsernameNotFoundException("User not found in the database");
+        Optional<User> userToDeleteOptional = userRepository.findUserByEmail(userEmail);
+        if (userToDeleteOptional.isPresent()) {
+            userRepository.delete(userToDeleteOptional.get());
+            return true;
         }
-        userRepository.delete(userToDelete);
-        return true;
+        return false;
     }
 
     @Override
-    public Role saveRole(Role role) {
-        return roleRepository.save(role);
+    public void saveRole(Role role) {
+        roleRepository.save(role);
     }
 
     @Override
     public Boolean addRoleToUser(String userEmail, String roleName) {
-        User user = userRepository.findUserByEmail(userEmail);
-        Role role = roleRepository.findRoleByName(roleName);
-
-        if (user != null && role != null) {
-            user.getRoles().add(role);
-            userRepository.save(user);
+        Optional<User> userOptional = userRepository.findUserByEmail(userEmail);
+        Optional<Role> roleOptional = Optional.of(roleRepository.findRoleByName(roleName));
+        if (userOptional.isPresent()) {
+            userOptional.get().getRoles().add(roleOptional.get());
+            userRepository.save(userOptional.get());
             return true;
         }
         return false;
@@ -84,31 +76,30 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
 
     @Override
     public Boolean removeRoleFromUser(String userEmail, String roleName) {
-        User user = userRepository.findUserByEmail(userEmail);
-        Role role = roleRepository.findRoleByName(roleName);
-        if (user != null && role != null) {
-            Collection<Role> roles = user.getRoles();
-            if (roles.contains(role)) {
-                roles.remove(role);
-                user.setRoles(roles);
-                userRepository.save(user);
+        Optional<User> userOptional = userRepository.findUserByEmail(userEmail);
+        Optional<Role> roleOptional = Optional.of(roleRepository.findRoleByName(roleName));
+        Collection<Role> roles;
+        if (userOptional.isPresent()) {
+            roles = userOptional.get().getRoles();
+            if (roles.contains(roleOptional.get())) {
+                roles.remove(roleOptional.get());
+                userOptional.get().setRoles(roles);
+                userRepository.save(userOptional.get());
+                return true;
             }
-            return true;
         }
         return false;
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findUserByEmail(username);
-        if (user == null) {
-            throw new UsernameNotFoundException("User not found in the database");
+        Optional<User> userOptional = userRepository.findUserByEmail(username);
+        List<SimpleGrantedAuthority> authorities = new ArrayList<>();
+        if (userOptional.isPresent()) {
+            userOptional.get().getRoles().forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getName())));
+            return new org.springframework.security.core.userdetails.User(userOptional.get().getEmail(), userOptional.get().getPassword(), authorities);
         }
-        Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-        user.getRoles().forEach(role -> {
-            authorities.add(new SimpleGrantedAuthority(role.getName()));
-        });
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), authorities);
+        return null;
     }
 
     public User getCurrentUser() {
@@ -125,7 +116,7 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
 
         String username;
         if (principal instanceof UserDetails) {
-            username = ((UserDetails)principal).getUsername();
+            username = ((UserDetails) principal).getUsername();
         } else {
             username = principal.toString();
         }
