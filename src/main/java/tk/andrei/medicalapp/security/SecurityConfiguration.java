@@ -26,6 +26,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     private final UserDetailsService userDetailsService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
+    private static final String MANAGER = "MANAGER";
+    private static final String ADMIN = "ADMIN";
+
     @Value("${jwt.secret}")
     private String secret;
 
@@ -62,9 +65,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 //h2
                 .antMatchers( "/","/h2-console/**").permitAll()
                 // the user uris
-                .antMatchers(HttpMethod.GET, "/user/find/**").hasAnyRole("MANAGER", "ADMIN")
-                .antMatchers(HttpMethod.POST, "/user/role/**").hasAnyRole("MANAGER", "ADMIN")
-                .antMatchers(HttpMethod.DELETE, "/user/delete/**").hasAnyRole("MANAGER", "ADMIN")
+                .antMatchers(HttpMethod.GET, "/user/find/**").hasAnyRole(MANAGER, ADMIN)
+                .antMatchers(HttpMethod.POST, "/user/role/**").hasAnyRole(MANAGER, ADMIN)
+                .antMatchers(HttpMethod.DELETE, "/user/delete/**").hasAnyRole(MANAGER, ADMIN)
                 .antMatchers(HttpMethod.GET, "/user/getCurrentUser").hasAnyRole();
 
         http.authorizeRequests().anyRequest().fullyAuthenticated();
