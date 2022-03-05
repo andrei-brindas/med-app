@@ -58,8 +58,8 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     }
 
     @Override
-    public Role saveRole(Role role) {
-        return roleRepository.save(role);
+    public void saveRole(Role role) {
+        roleRepository.save(role);
     }
 
     @Override

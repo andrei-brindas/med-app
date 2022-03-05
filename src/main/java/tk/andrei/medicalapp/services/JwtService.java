@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface JwtService {
-    String createAccessToken(String username, List authorities);
+    String createAccessToken(String username, List<String> authorities);
     DecodedJWT decodeToken(String token);
     String getUsername(DecodedJWT decodedJWT);
     Collection<SimpleGrantedAuthority> getAuthorities(DecodedJWT decodedJWT);

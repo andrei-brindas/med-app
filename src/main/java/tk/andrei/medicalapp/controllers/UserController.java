@@ -18,10 +18,10 @@ import tk.andrei.medicalapp.filter.CustomAuthorizationFilter;
 import tk.andrei.medicalapp.services.JwtService;
 import tk.andrei.medicalapp.services.UserServiceImpl;
 
+import javax.security.auth.login.CredentialException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.stream.Collectors;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -68,7 +68,7 @@ public class UserController {
     @ApiOperation(value = "Delete user", notes = "With this request you can delete an user", authorizations = {@Authorization(value = "Bearer")})
     @DeleteMapping("/delete")
     public ResponseEntity<String> removeUser(@RequestParam String userEmail) {
-        Boolean success = userService.deleteUser(userEmail);
+        boolean success = userService.deleteUser(userEmail);
         if (success) {
             return ResponseEntity.status(HttpStatus.OK).body("User removed successfully");
         }
@@ -79,7 +79,7 @@ public class UserController {
     @ApiOperation(value = "Add role to user", notes = "With this request you can add a role to an user", authorizations = {@Authorization(value = "Bearer")})
     @PostMapping("/role/add")
     public ResponseEntity<String> addRoleToUser(@RequestBody ManageRoleDTO addRoleDTO) {
-        Boolean success = userService.addRoleToUser(addRoleDTO.getUserEmail(), addRoleDTO.getRoleName());
+        boolean success = userService.addRoleToUser(addRoleDTO.getUserEmail(), addRoleDTO.getRoleName());
         if (success) {
             return ResponseEntity.status(HttpStatus.OK).body("Role added successfully");
         }
@@ -90,7 +90,7 @@ public class UserController {
     @ApiOperation(value = "Delete user role", notes = "With this request you can delete a role from an user", authorizations = {@Authorization(value = "Bearer")})
     @DeleteMapping("/role/delete")
     public ResponseEntity<String> removeRoleFromUser(@RequestBody ManageRoleDTO manageRoleDTO) {
-        Boolean success = userService.removeRoleFromUser(manageRoleDTO.getUserEmail(), manageRoleDTO.getRoleName());
+        boolean success = userService.removeRoleFromUser(manageRoleDTO.getUserEmail(), manageRoleDTO.getRoleName());
         if (success) {
             return ResponseEntity.status(HttpStatus.OK).body("Role removed successfully");
         }
@@ -104,19 +104,19 @@ public class UserController {
         String authorizationHeader = request.getHeader(AUTHORIZATION);
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             try {
-                String refresh_token = authorizationHeader.substring("Bearer ".length());
-                DecodedJWT decodedJWT = tokenService.decodeToken(refresh_token);
+                String refreshToken = authorizationHeader.substring("Bearer ".length());
+                DecodedJWT decodedJWT = tokenService.decodeToken(refreshToken);
                 String username = tokenService.getUsername(decodedJWT);
                 UserDetails user = userService.loadUserByUsername(username);
                 if (user == null) {
-                    throw new Exception("Wrong credentials");
+                    throw new CredentialException("Wrong credentials");
                 }
-                String access_token = tokenService.createAccessToken(
+                String accessToken = tokenService.createAccessToken(
                         user.getUsername(),
-                        user.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList())
+                        user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()
                 );
 
-                new ObjectMapper().writeValue(response.getOutputStream(), tokenService.setTokens(access_token, refresh_token));
+                new ObjectMapper().writeValue(response.getOutputStream(), tokenService.setTokens(accessToken, refreshToken));
 
             } catch (Exception e) {
                 e.printStackTrace();
