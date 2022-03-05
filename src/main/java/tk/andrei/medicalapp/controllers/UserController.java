@@ -61,7 +61,6 @@ public class UserController {
     @ResponseBody
     public ResponseEntity<User> getUserInformation() {
         User currentUser = userService.getCurrentUser();
-        System.out.println(currentUser);
         currentUser.setPassword(null);
         return ResponseEntity.status(HttpStatus.OK).body(currentUser);
     }
